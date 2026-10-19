@@ -12,16 +12,16 @@ Benchmark contract: European call, S = K = 100, T = 1 y, r = 5%, σ = 20%, q = 0
 | Method | Setting | Error vs closed form | Measured convergence order | Time per price |
 | --- | --- | --- | --- | --- |
 | Monte Carlo, plain (baseline) | 256,000 paths | RMSE 0.0317; variance ÷1.0 | 0.50 (theory 0.5) | 3.0 ms |
-| Monte Carlo, antithetic + control variate | 256,000 paths | RMSE 0.0053; variance ÷28.6 | 0.50 (theory 0.5) | 2.3 ms |
-| Crank–Nicolson, plain (baseline) | 1600 × 200 grid | price 4.4e-04; gamma 2.4e-01 | price 0.7; gamma -1.0 (diverging) | 4.5 ms |
+| Monte Carlo, antithetic + control variate | 256,000 paths | RMSE 0.0053; variance ÷28.6 | 0.50 (theory 0.5) | 2.4 ms |
+| Crank–Nicolson, plain (baseline) | 1600 × 200 grid | price 4.4e-04; gamma 2.4e-01 | price 0.7; gamma -1.0 (diverging) | 4.1 ms |
 | Crank–Nicolson + Rannacher start-up | 1600 × 200 grid | price 4.3e-05; gamma 3.1e-07 | price 2.0; gamma 2.0 | 4.2 ms |
-| + Richardson extrapolation | 1600 × 200 grid and 2× finer | price 6.0e-11; gamma 2.7e-10 | price 4.4; gamma 3.4 | 17.8 ms |
+| + Richardson extrapolation | 1600 × 200 grid and 2× finer | price 6.0e-11; gamma 2.7e-10 | price 4.4; gamma 3.4 | 18.3 ms |
 
 Cross-check on 400 random contracts (calls and puts; strikes 70–130% of spot, maturities 0.1–2 y, vols 10–60%, rates −1% to 6%, dividend yields 0–4%):
 
 | Check | Result |
 | --- | --- |
-| PDE pricer at default settings: max / median absolute error | 9.6e-08 / 2.6e-08 (3.8 ms per price) |
+| PDE pricer at default settings: max / median absolute error | 9.6e-08 / 2.6e-08 (3.9 ms per price) |
 | Monte Carlo (200,000 paths): 99% intervals containing the closed form | 98.5% (3 degenerate runs with zero error bars; max error there 3.0e-06) |
 | Closed form | 18 µs per price |
 
