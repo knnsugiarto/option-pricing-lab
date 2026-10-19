@@ -6,11 +6,11 @@ Benchmark contract: European call, S = K = 100, T = 1 y, r = 5%, σ = 20%, q = 0
 
 | Method | Setting | Error vs closed form | Measured convergence order | Time per price |
 | --- | --- | --- | --- | --- |
-| Monte Carlo, plain (baseline) | 256,000 paths | RMSE 0.0317; variance ÷1.0 | 0.50 (theory 0.5) | 3.1 ms |
-| Monte Carlo, antithetic + control variate | 256,000 paths | RMSE 0.0053; variance ÷28.6 | 0.50 (theory 0.5) | 3.2 ms |
-| Crank–Nicolson, plain (baseline) | 1600 × 200 grid | price 4.4e-04; gamma 2.4e-01 | price 0.7; gamma -1.0 (diverging) | 4.2 ms |
+| Monte Carlo, plain (baseline) | 256,000 paths | RMSE 0.0317; variance ÷1.0 | 0.50 (theory 0.5) | 3.3 ms |
+| Monte Carlo, antithetic + control variate | 256,000 paths | RMSE 0.0053; variance ÷28.6 | 0.50 (theory 0.5) | 2.3 ms |
+| Crank–Nicolson, plain (baseline) | 1600 × 200 grid | price 4.4e-04; gamma 2.4e-01 | price 0.7; gamma -1.0 (diverging) | 4.3 ms |
 | Crank–Nicolson + Rannacher start-up | 1600 × 200 grid | price 4.3e-05; gamma 3.1e-07 | price 2.0; gamma 2.0 | 4.2 ms |
-| + Richardson extrapolation | 1600 × 200 grid and 2× finer | price 6.0e-11; gamma 2.7e-10 | price 4.4; gamma 3.4 | 18.2 ms |
+| + Richardson extrapolation | 1600 × 200 grid and 2× finer | price 6.0e-11; gamma 2.7e-10 | price 4.4; gamma 3.4 | 18.0 ms |
 
 Cross-check on 400 random contracts (calls and puts; strikes 70–130% of spot, maturities 0.1–2 y, vols 10–60%, rates −1% to 6%, dividend yields 0–4%):
 
@@ -40,23 +40,23 @@ Timings: arm, Python 3.13.5, generated 2026-10-19 UTC.
 | plain | 1,000 | 0.45520 | 0.46416 | 99% | 0.0 ms |
 | plain | 4,000 | 0.27313 | 0.23220 | 96% | 0.1 ms |
 | plain | 16,000 | 0.11065 | 0.11618 | 99% | 0.2 ms |
-| plain | 64,000 | 0.05708 | 0.05820 | 99% | 0.7 ms |
-| plain | 256,000 | 0.03166 | 0.02909 | 97% | 3.1 ms |
-| antithetic | 1,000 | 0.30248 | 0.32852 | 100% | 0.2 ms |
-| antithetic | 4,000 | 0.15933 | 0.16467 | 99% | 0.6 ms |
-| antithetic | 16,000 | 0.08348 | 0.08222 | 99% | 0.7 ms |
-| antithetic | 64,000 | 0.03959 | 0.04113 | 99% | 0.8 ms |
-| antithetic | 256,000 | 0.02052 | 0.02055 | 100% | 2.3 ms |
+| plain | 64,000 | 0.05708 | 0.05820 | 99% | 1.5 ms |
+| plain | 256,000 | 0.03166 | 0.02909 | 97% | 3.3 ms |
+| antithetic | 1,000 | 0.30248 | 0.32852 | 100% | 0.0 ms |
+| antithetic | 4,000 | 0.15933 | 0.16467 | 99% | 0.1 ms |
+| antithetic | 16,000 | 0.08348 | 0.08222 | 99% | 0.2 ms |
+| antithetic | 64,000 | 0.03959 | 0.04113 | 99% | 0.6 ms |
+| antithetic | 256,000 | 0.02052 | 0.02055 | 100% | 2.2 ms |
 | control | 1,000 | 0.19822 | 0.17653 | 97% | 0.1 ms |
 | control | 4,000 | 0.08499 | 0.08854 | 99% | 0.1 ms |
 | control | 16,000 | 0.04483 | 0.04440 | 99% | 0.2 ms |
 | control | 64,000 | 0.02032 | 0.02218 | 100% | 0.8 ms |
-| control | 256,000 | 0.01193 | 0.01109 | 99% | 4.7 ms |
-| antithetic_control | 1,000 | 0.08759 | 0.08507 | 100% | 0.1 ms |
-| antithetic_control | 4,000 | 0.04017 | 0.04304 | 100% | 0.2 ms |
-| antithetic_control | 16,000 | 0.02166 | 0.02179 | 100% | 0.4 ms |
-| antithetic_control | 64,000 | 0.01101 | 0.01086 | 99% | 0.9 ms |
-| antithetic_control | 256,000 | 0.00525 | 0.00544 | 100% | 3.2 ms |
+| control | 256,000 | 0.01193 | 0.01109 | 99% | 3.9 ms |
+| antithetic_control | 1,000 | 0.08759 | 0.08507 | 100% | 0.0 ms |
+| antithetic_control | 4,000 | 0.04017 | 0.04304 | 100% | 0.1 ms |
+| antithetic_control | 16,000 | 0.02166 | 0.02179 | 100% | 0.2 ms |
+| antithetic_control | 64,000 | 0.01101 | 0.01086 | 99% | 0.7 ms |
+| antithetic_control | 256,000 | 0.00525 | 0.00544 | 100% | 2.3 ms |
 
 ## PDE convergence
 
@@ -69,7 +69,7 @@ Convergence orders fitted on grids with at least 200 space steps.
 | Crank–Nicolson | 200 | 25 | 8.0 | 1.5e-03 | 6.4e-05 | 3.0e-02 | 0.3 ms |
 | Crank–Nicolson | 400 | 50 | 16.0 | 2.1e-03 | 2.7e-05 | 6.0e-02 | 0.6 ms |
 | Crank–Nicolson | 800 | 100 | 32.0 | 9.3e-04 | 1.4e-05 | 1.2e-01 | 1.5 ms |
-| Crank–Nicolson | 1600 | 200 | 64.0 | 4.4e-04 | 7.0e-06 | 2.4e-01 | 4.2 ms |
+| Crank–Nicolson | 1600 | 200 | 64.0 | 4.4e-04 | 7.0e-06 | 2.4e-01 | 4.3 ms |
 | CN + Rannacher | 50 | 6 | 2.1 | 4.6e-02 | 2.5e-04 | 4.0e-04 | 0.2 ms |
 | CN + Rannacher | 100 | 12 | 4.2 | 1.1e-02 | 6.2e-05 | 9.0e-05 | 0.2 ms |
 | CN + Rannacher | 200 | 25 | 8.0 | 2.8e-03 | 1.4e-05 | 1.9e-05 | 0.3 ms |
@@ -80,8 +80,8 @@ Convergence orders fitted on grids with at least 200 space steps.
 | CN + Rannacher + Richardson | 100 | 12 | 4.2 | 1.4e-05 | 1.0e-07 | 1.5e-06 | 0.5 ms |
 | CN + Rannacher + Richardson | 200 | 25 | 8.0 | 6.5e-07 | 3.6e-09 | 3.9e-07 | 1.3 ms |
 | CN + Rannacher + Richardson | 400 | 50 | 16.0 | 4.5e-08 | 2.8e-10 | 1.7e-08 | 2.1 ms |
-| CN + Rannacher + Richardson | 800 | 100 | 32.0 | 2.7e-09 | 1.6e-11 | 2.1e-09 | 5.7 ms |
-| CN + Rannacher + Richardson | 1600 | 200 | 64.0 | 6.0e-11 | 6.0e-12 | 2.7e-10 | 18.2 ms |
+| CN + Rannacher + Richardson | 800 | 100 | 32.0 | 2.7e-09 | 1.6e-11 | 2.1e-09 | 5.6 ms |
+| CN + Rannacher + Richardson | 1600 | 200 | 64.0 | 6.0e-11 | 6.0e-12 | 2.7e-10 | 18.0 ms |
 
 ## Market data cleaning funnel
 
@@ -101,7 +101,7 @@ Parity fit residual standard deviation: 0.647 index points over 20 strikes.
 
 ## Environment
 
-- generated_at_utc: 2026-10-19T14:35:01+00:00
+- generated_at_utc: 2026-10-19T16:49:21+00:00
 - python: 3.13.5
 - platform: macOS-15.3.1-arm64-arm-64bit-Mach-O
 - processor: arm
