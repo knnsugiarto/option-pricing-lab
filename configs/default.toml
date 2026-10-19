@@ -1,0 +1,57 @@
+# Parameters for every study. scripts/reproduce.py reads this file;
+# pass --config to use another one.
+
+seed = 20261013
+
+# Benchmark contract for the convergence studies: a one-year at-the-money call.
+# Spot equals strike on purpose: the strike is where the payoff is kinked and
+# where finite-difference Greeks are hardest to get right.
+[contract]
+spot = 100.0
+strike = 100.0
+maturity = 1.0
+rate = 0.05
+vol = 0.20
+div_yield = 0.0
+option_type = "call"
+
+[monte_carlo]
+path_counts = [1000, 4000, 16000, 64000, 256000]
+replications = 100        # independent runs per path count, to measure the actual error
+confidence_level = 0.99
+
+[crank_nicolson]
+space_steps = [50, 100, 200, 400, 800, 1600]
+time_steps_per_space_step = 0.125   # 8x fewer time steps than space steps: cheap, and hard on plain CN
+rannacher_steps = 2
+n_std = 5.0
+fit_from = 200            # fit convergence orders on grids with at least this many space steps
+
+# Gamma across spot levels on one practical grid, to show oscillations near the strike.
+[gamma_profile]
+space_steps = 400
+time_steps = 50
+spot_min = 75.0
+spot_max = 130.0
+
+# Cross-method agreement over random contracts in the validated range.
+[accuracy]
+n_cases = 200
+mc_paths = 200000
+strike_range = [70.0, 130.0]   # spot is fixed at 100
+maturity_range = [0.1, 2.0]
+rate_range = [-0.01, 0.06]
+vol_range = [0.10, 0.60]
+div_yield_range = [0.0, 0.04]
+
+[market]
+ticker = "^SPX"                 # S&P 500 index options: European exercise
+preferred_root = "SPXW"         # PM-settled weeklies; standard SPX monthlies settle in the morning
+settlement_time = "16:00"
+settlement_timezone = "America/New_York"
+target_days = 45                # pick the listed expiry closest to this many days out
+min_days = 14
+min_bid = 0.10
+max_relative_spread = 0.25      # drop quotes whose bid-ask spread exceeds 25% of the mid
+parity_strikes = 20             # strikes used to fit the forward from put-call parity
+window_sd = 2.0                 # smile metrics use strikes within 2 standard deviations of the forward

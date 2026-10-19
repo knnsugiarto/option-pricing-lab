@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Tools
+.pytest_cache/
+.ipynb_checkpoints/
+.coverage
+htmlcov/
+
+# Data is downloaded by script and never committed
+data/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
