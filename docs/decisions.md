@@ -144,3 +144,15 @@ Each entry: what we chose, the alternatives, and why.
 
 - **Chose:** pinned numpy 2.5.4, scipy 1.18.1, pandas 3.0.6, matplotlib 3.11.2, yfinance 1.7.0 and their dependencies, plus tzdata so time zones work on Windows.
 - **Why:** reproducible installs; these releases require Python 3.12 or newer.
+
+## D25 — Keep the parity-implied discount factor despite its noise (19 Oct 2026)
+
+- **Chose:** keep the forward and discount factor from the put–call parity fit, as before.
+- **Alternative:** take the discount factor from the 3-month Treasury bill rate and use parity only for the forward.
+- **Why:** on the 19 October snapshot the parity rate (2.96%) sat 1.1 points below the Treasury bill rate (4.10%), which is within its noise for a 46-day expiry (a standard error of roughly a point of annual rate). The forward was consistent with the bill rate and a dividend yield of about 1%. Re-solving the implied vols with the bill rate moved them by at most 0.02 vol points against a 2.90-point smile, so a second data source would add a dependency without changing any result.
+
+## D26 — Smile figure in two panels (19 Oct 2026)
+
+- **Chose:** the whole smile on the left, and a zoom on the scored ±2 sd window with each quote's bid–ask vol band on the right.
+- **Alternative:** one panel (the first version).
+- **Why:** on real data the far put wing reaches 70% vol, which squashed the scored window into the bottom of the chart and hid the bid–ask bands that the headline test is about. Labels also overlapped the data.

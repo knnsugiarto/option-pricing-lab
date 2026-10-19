@@ -17,6 +17,7 @@ matplotlib.use("Agg")  # render to files; no display needed
 
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
 from matplotlib.axes import Axes  # noqa: E402
 
 from optlab.smile import SmileAnalysis  # noqa: E402
@@ -218,53 +219,96 @@ def plot_gamma_profile(profile: GammaProfile, strike: float, path: Path) -> None
         _save(fig, path)
 
 
-def plot_smile(analysis: SmileAnalysis, path: Path) -> None:
-    """Market implied vols against log-moneyness, with bid-ask bands and the flat vol."""
-    smile, summary = analysis.smile, analysis.summary
-    with _style():
-        fig, ax = plt.subplots(figsize=(9, 4.6))
-        for slot, (option_type, label) in enumerate((("put", "Puts (K < F)"), ("call", "Calls (K ≥ F)"))):
-            side = smile[smile["option_type"] == option_type]
-            k = side["log_moneyness"].to_numpy()
+def _smile_points(ax: Axes, smile: pd.DataFrame, with_bands: bool) -> None:
+    """Puts and calls as separate series; optionally each quote's bid-ask vol band."""
+    for slot, (option_type, label) in enumerate((("put", "Puts (K < F)"), ("call", "Calls (K ≥ F)"))):
+        side = smile[smile["option_type"] == option_type]
+        k = side["log_moneyness"].to_numpy()
+        if with_bands:
             low = np.clip(side["iv_bid"].to_numpy(), 0.0, None)
             high = np.minimum(side["iv_ask"].to_numpy(), 1.5 * side["iv_mid"].max())
-            ax.vlines(k, 100 * low, 100 * high, color=SERIES[slot], alpha=0.35, linewidth=1.4, zorder=2)
-            ax.scatter(
-                k,
-                100 * side["iv_mid"],
-                s=30,
-                color=SERIES[slot],
-                marker=MARKERS[slot],
-                edgecolors=SURFACE,
-                linewidths=1.0,
-                label=f"{label}: mid, with bid–ask band",
-                zorder=3,
-            )
-        ax.axhline(100 * summary.atm_vol, color=INK_SECONDARY, linewidth=1.2, zorder=2)
-        ax.annotate(
-            f"flat Black–Scholes vol = ATM {100 * summary.atm_vol:.1f}%",
-            (smile["log_moneyness"].max(), 100 * summary.atm_vol),
+            ax.vlines(k, 100 * low, 100 * high, color=SERIES[slot], alpha=0.45, linewidth=1.6, zorder=2)
+        ax.scatter(
+            k,
+            100 * side["iv_mid"],
+            s=30 if with_bands else 22,
+            color=SERIES[slot],
+            marker=MARKERS[slot],
+            edgecolors=SURFACE,
+            linewidths=1.0,
+            label=f"{label}: mid" + (", with bid–ask band" if with_bands else ""),
+            zorder=3,
+        )
+
+
+def plot_smile(analysis: SmileAnalysis, path: Path) -> None:
+    """Market implied vols against log-moneyness: the whole smile, and a zoom on the scored window.
+
+    The left panel shows every quote that survived cleaning. The right panel
+    zooms on the window where the flat-vol error is measured, where each
+    quote's bid-ask vol band is wide enough to see against the flat vol.
+    """
+    smile, summary = analysis.smile, analysis.summary
+    atm = 100 * summary.atm_vol
+    edge = summary.window_sd * summary.atm_vol * np.sqrt(analysis.maturity)
+    window = smile[np.abs(smile["log_moneyness"]) <= edge]
+    with _style():
+        fig, (full, zoom) = plt.subplots(1, 2, figsize=(11, 4.8), gridspec_kw={"width_ratios": [1, 1.2]})
+
+        _smile_points(full, smile, with_bands=False)
+        full.axvspan(-edge, edge, color=GRID, alpha=0.55, linewidth=0, zorder=0)
+        full.axhline(atm, color=INK_SECONDARY, linewidth=1.2, zorder=2)
+        full.set(xlabel="Log-moneyness ln(K / F)", ylabel="Implied volatility (%)", title="Every quote kept after cleaning")
+        full.annotate(
+            f"flat vol {atm:.1f}%",
+            (smile["log_moneyness"].min(), atm),
+            xytext=(0, 5),
+            textcoords="offset points",
+            fontsize=8.5,
+            color=INK_SECONDARY,
+        )
+        full.annotate(
+            f"scored window\n(±{summary.window_sd:g} sd)",
+            (-edge, full.get_ylim()[1]),
+            xytext=(4, -6),
+            textcoords="offset points",
+            va="top",
+            fontsize=8,
+            color=INK_MUTED,
+        )
+
+        _smile_points(zoom, window, with_bands=True)
+        zoom.axhline(atm, color=INK_SECONDARY, linewidth=1.2, zorder=2)
+        zoom.annotate(
+            f"flat Black–Scholes vol = ATM {atm:.1f}%",
+            (edge, atm),
             xytext=(0, 5),
             textcoords="offset points",
             ha="right",
             fontsize=8.5,
             color=INK_SECONDARY,
         )
-        edge = summary.window_sd * summary.atm_vol * np.sqrt(analysis.maturity)
-        ax.axvspan(-edge, edge, color=GRID, alpha=0.45, linewidth=0, zorder=0)
-        ax.annotate(
-            f"±{summary.window_sd:g} sd analysis window",
-            (-edge, ax.get_ylim()[0]),
-            xytext=(4, 6),
-            textcoords="offset points",
-            fontsize=8,
-            color=INK_MUTED,
+        low = np.clip(window["iv_bid"].to_numpy(), 0.0, None).min()
+        high = np.minimum(window["iv_ask"].to_numpy(), 1.5 * window["iv_mid"].max()).max()
+        pad = 0.06 * (high - low)
+        zoom.set(
+            xlim=(-edge * 1.04, edge * 1.04),
+            ylim=(100 * (low - pad), 100 * (high + pad)),
+            xlabel="Log-moneyness ln(K / F)",
+            title=f"Scored window: flat vol outside {summary.share_flat_outside_spread:.0%} of bid–ask bands",
         )
-        ax.set(xlabel="Log-moneyness ln(K / F)", ylabel="Implied volatility (%)")
+        zoom.legend(loc="upper right")
+
         days = analysis.maturity * 365
-        ax.set_title(
-            f"{analysis.ticker} options expiring {analysis.expiry:%d %b %Y} ({days:.0f} days), quotes at {analysis.quote_time:%d %b %Y %H:%M} UTC"
+        fig.suptitle(
+            f"{analysis.ticker} options expiring {analysis.expiry:%d %b %Y} ({days:.0f} days), quotes at "
+            f"{analysis.quote_time:%d %b %Y %H:%M} UTC",
+            x=0.01,
+            ha="left",
+            y=0.985,
+            fontsize=11,
+            fontweight="bold",
+            color=INK,
         )
-        ax.legend(loc="upper right")
-        fig.tight_layout()
+        fig.tight_layout(rect=(0, 0, 1, 0.97))
         _save(fig, path)
